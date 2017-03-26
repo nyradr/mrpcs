@@ -1,0 +1,8 @@
+[package]
+name = "mrpcs"
+version = "0.1.0"
+authors = ["nyradr <nyradr@protonmail.com>"]
+licence = "GPL-3.0"
+description = "Simple management of multiple RPCs servers"
+
+[dependencies]
