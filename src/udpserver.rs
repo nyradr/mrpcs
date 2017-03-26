@@ -1,4 +1,4 @@
-use std::sync::{Arc};
+use std::sync::{Arc, Mutex};
 use std::net::{UdpSocket, SocketAddr};
 use std::time::{Duration, Instant};
 use std::sync::mpsc::{Receiver, Sender};
@@ -13,7 +13,7 @@ pub struct UdpServInstance{
     /* Port used by instance */
     port: u16,
     /* Instance status */
-    status: Status,
+    status: Arc<Mutex<Status>>,
     /* UDP socket */
     sock: Arc<UdpSocket>,
 }
@@ -25,7 +25,7 @@ impl UdpServInstance{
         let mut sock = UdpSocket::bind(("localhost", port)).unwrap();
         let usi = UdpServInstance{
             port: port,
-            status: Status::STARTING,
+            status: Arc::new(Mutex::new(Status::STARTING)),
             sock: Arc::new(sock)
         };
         usi.set_timeout(timeout);
@@ -36,15 +36,20 @@ impl UdpServInstance{
 impl TServInstance for UdpServInstance{
     /* Test if the server status is RUNNING */
     fn is_running(&self) -> bool{
-        match &self.status{
-            RUNNING => {return true;}
-            _ => {return false;}
+        let ref st = *self.status.lock().unwrap();
+
+        match st{
+            &Status::RUNNING => {return true;}
+            x => {
+                return false;
+            }
         }
     }
 
     /* Get the current server status */
-    fn get_status(&self)->&Status{
-        return &self.status;
+    fn get_status(&self)->Status{
+        let st = self.status.lock().unwrap();
+        return st.clone();
     }
 
     /* Set the socket timeout
@@ -64,7 +69,10 @@ impl TServInstance for UdpServInstance{
         tx : mpsc sender where send received datas
     */
     fn run(&mut self, tx: Sender<RecvHandle>){
-        self.status = Status::RUNNING;
+        {
+            let mut st = self.status.lock().unwrap();
+            *st = Status::RUNNING;
+        }
 
         while self.is_running(){
             // receive data
@@ -72,7 +80,6 @@ impl TServInstance for UdpServInstance{
             match self.sock.recv_from(&mut buff){
                 Ok((len, addr)) =>{
                     let buff = &mut buff[..len];
-                    println!("Server recv: {:?}", buff);
 
                     // send data to handler
                     let hndl = RecvHandle::new(self.port, addr, buff.to_vec());
@@ -82,12 +89,18 @@ impl TServInstance for UdpServInstance{
             }
         }
 
-        self.status = Status::STOPED;
+        drop(tx);
+
+        {
+            let mut st = self.status.lock().unwrap();
+            *st = Status::STOPED;
+        }
     }
 
     /* Stop the running server */
     fn stop(&mut self){
-        self.status = Status::STOPING;
+        let mut st = self.status.lock().unwrap();
+        *st = Status::STOPING;
     }
 
     /* Try to send data through the socket of this server */

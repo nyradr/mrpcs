@@ -35,6 +35,7 @@ impl Rpc{
     }
 
     /* Start asynchronous udp server
+        Wait until the server is RUNNING
         port : UDP port where the server should listen
         return true if the server is started
     */
@@ -47,6 +48,15 @@ impl Rpc{
             thread::spawn(move ||{
                 nudps.run(tx);
             });
+
+            // wait until the server is RUNNING
+            let mut wait = true;
+            while wait{
+                match udps.get_status(){
+                    Status::RUNNING => {wait = false;}
+                    _ => {}
+                }
+            }
 
             self.insts.insert(port, ServMode::UDP(udps));
             true
@@ -107,6 +117,25 @@ impl Rpc{
             }
             None =>{
                 false
+            }
+        }
+    }
+
+    /* Get the status of a server
+        port : server port
+        return Some(status) if the server exist
+    */
+    pub fn status_of(&self, port: &u16)->Option<Status>{
+        match self.insts.get(port){
+            Some(srv) =>{
+                match srv{
+                    &ServMode::UDP(ref u) =>{
+                        Some(u.get_status())
+                    }
+                }
+            }
+            None =>{
+                None
             }
         }
     }

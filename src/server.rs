@@ -1,9 +1,10 @@
 use std::net::SocketAddr;
 use std::time::{Duration, Instant};
 use std::sync::mpsc::{Sender};
+use std::fmt;
 
 /* Server status */
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Status{
     /* The server is starting but not yet running */
     STARTING,
@@ -14,6 +15,7 @@ pub enum Status{
     /* The server is stopped */
     STOPED
 }
+
 
 /* Data throwed when a message is received
 */
@@ -65,7 +67,7 @@ pub trait TServInstance{
     fn is_running(&self) -> bool;
 
     /* Get the current server status */
-    fn get_status(&self) -> &Status;
+    fn get_status(&self) -> Status;
 
     /* Set the socket timeout
         d : timeout duration
