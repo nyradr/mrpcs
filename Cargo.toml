@@ -6,3 +6,10 @@ licence = "GPL-3.0"
 description = "Simple management of multiple RPCs servers"
 
 [dependencies]
+
+
+[[example]]
+name="singleudp"
+path="examples/singleudp.rs"
+test=false
+bench=false
