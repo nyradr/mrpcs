@@ -89,8 +89,6 @@ impl TServInstance for UdpServInstance{
             }
         }
 
-        drop(tx);
-
         {
             let mut st = self.status.lock().unwrap();
             *st = Status::STOPED;

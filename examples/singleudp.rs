@@ -22,6 +22,8 @@ fn req_handler(rx: Receiver<RecvHandle>){
     }
 }
 
+const PORT: u16 = 4242;
+
 fn main() {
     // data handler
     let (tx, rx) = mpsc::channel();
@@ -30,7 +32,7 @@ fn main() {
     let mut rpc = Rpc::new(tx);
 
     // start an asynchronous UDP listener of port 4242, with timeout of 2s
-    rpc.start_udp(4242u16, Duration::new(2, 0));
+    rpc.start_udp(PORT, Duration::new(2, 0));
 
     // start data handler
     let t = thread::spawn(move ||{
@@ -45,5 +47,5 @@ fn main() {
     }
 
     // stop the server
-    rpc.stop(4242u16);
+    rpc.stop(PORT);
 }

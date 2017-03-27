@@ -35,13 +35,13 @@ impl Rpc{
     }
 
     /* Start asynchronous udp server
-        Wait until the server is RUNNING
+        Block until the server is RUNNING
         port : UDP port where the server should listen
         return true if the server is started
     */
-    pub fn start_udp(&mut self, port: u16, timeout: Duration) -> bool{
-        if !self.insts.contains_key(&port){
-            let udps = UdpServInstance::new(port, timeout);
+    pub fn start_udp(&mut self, port: &u16, timeout: Duration) -> bool{
+        if !self.insts.contains_key(port){
+            let udps = UdpServInstance::new(port.clone(), timeout);
             let mut nudps = udps.clone();
             let tx = self.recvh.clone();
 
@@ -58,7 +58,7 @@ impl Rpc{
                 }
             }
 
-            self.insts.insert(port, ServMode::UDP(udps));
+            self.insts.insert(port.clone(), ServMode::UDP(udps));
             true
         }else{
             false
@@ -69,12 +69,23 @@ impl Rpc{
     /* Stop a server running on a port
         port : Server port
     */
-    pub fn stop(&mut self, port: u16){
-        match self.insts.remove(&port){
+    pub fn stop(&mut self, port: &u16){
+        match self.insts.remove(port){
             Some(srv) =>{
                 match srv {
                     ServMode::UDP(mut udps) =>{
                         udps.stop();
+
+                        // wait until the server is STOPED
+                        let mut wait = true;
+                        while wait{
+                            match udps.get_status(){
+                                Status::STOPED => {wait = false;}
+                                _ => {}
+                            }
+                        }
+
+                        self.insts.remove(port);
                     }
                 }
             }
