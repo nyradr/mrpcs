@@ -1,6 +1,7 @@
 
 pub mod server;
 mod udpserver;
+mod tcpserver;
 pub mod rpc;
 
 /* Buffer size */
