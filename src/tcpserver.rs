@@ -2,6 +2,8 @@ use std::sync::{Arc, Mutex};
 use std::net::{TcpListener, TcpStream, SocketAddr};
 use std::time::{Duration, Instant};
 use std::sync::mpsc::{Receiver, Sender};
+use std::collections::HashMap;
+use std::thread;
 
 use server::{Status, RecvHandle, TServInstance};
 use ::BUFFER_SIZE;
@@ -14,7 +16,9 @@ pub struct TcpServInstance {
     /* TCP socket */
     sock: Arc<TcpListener>,
     /* Clients IO timeout */
-    timeout: Arc<Mutex<Duration>>
+    timeout: Arc<Mutex<Duration>>,
+    /* List of connected peers */
+    peers: Arc<Mutex<HashMap<SocketAddr, TcpStream>>>
 }
 
 impl TcpServInstance{
@@ -30,10 +34,15 @@ impl TcpServInstance{
             port: port,
             status: Arc::new(Mutex::new(Status::STARTING)),
             sock: Arc::new(sock),
-            timeout: Arc::new(Mutex::new(timeout))
+            timeout: Arc::new(Mutex::new(timeout)),
+            peers: Arc::new(Mutex::new(HashMap::new()))
         };
         return tsi;
     }
+}
+
+fn run_tcpstream(stream: TcpStream){
+
 }
 
 impl TServInstance for TcpServInstance{
@@ -79,7 +88,24 @@ impl TServInstance for TcpServInstance{
         }
 
         while self.is_running(){
-            // TODO
+            for stream in self.sock.incoming(){
+                let stream = stream.unwrap();
+
+                {   // setting socket timeout
+                    let timeout = *self.timeout.lock().unwrap();
+                    stream.set_read_timeout(Some(timeout.clone()));
+                    stream.set_write_timeout(Some(timeout.clone()));
+                }
+
+                let nstream = stream.try_clone().unwrap();
+                let addr = nstream.peer_addr().unwrap();
+                let mut peers = self.peers.lock().unwrap();
+                peers.insert(addr, nstream);
+
+                thread::spawn(move ||{
+                    run_tcpstream(stream);
+                });
+            }
         }
 
         {
