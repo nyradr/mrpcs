@@ -1,14 +1,11 @@
 use std::thread;
-use std::sync::{Arc};
-use std::net::{UdpSocket, SocketAddr};
-use std::sync::mpsc;
-use std::sync::mpsc::{Receiver, Sender};
+use std::net::SocketAddr;
+use std::sync::mpsc::Sender;
 use std::collections::HashMap;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use server::{Status, RecvHandle, TServInstance};
 use udpserver::UdpServInstance;
-use ::BUFFER_SIZE;
 
 #[derive(Clone)]
 pub enum ServMode{

@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 use std::net::{UdpSocket, SocketAddr};
-use std::time::{Duration, Instant};
-use std::sync::mpsc::{Receiver, Sender};
+use std::time::Duration;
+use std::sync::mpsc::Sender;
 
 use server::{Status, RecvHandle, TServInstance};
 use ::BUFFER_SIZE;
@@ -22,7 +22,7 @@ impl UdpServInstance{
 
     /* Create a new UdpServInstance */
     pub fn new(port: u16, timeout: Duration)->UdpServInstance{
-        let mut sock = UdpSocket::bind(("localhost", port)).unwrap();
+        let sock = UdpSocket::bind(("localhost", port)).unwrap();
         let usi = UdpServInstance{
             port: port,
             status: Arc::new(Mutex::new(Status::STARTING)),
@@ -40,7 +40,7 @@ impl TServInstance for UdpServInstance{
 
         match st{
             &Status::RUNNING => {return true;}
-            x => {
+            _ => {
                 return false;
             }
         }
@@ -56,8 +56,8 @@ impl TServInstance for UdpServInstance{
         d : timeout duration
     */
     fn set_timeout(&self, d: Duration){
-        self.sock.set_read_timeout(Some(d));
-        self.sock.set_write_timeout(Some(d));
+        let _ = self.sock.set_read_timeout(Some(d));
+        let _ = self.sock.set_write_timeout(Some(d));
     }
 
     /* Get the socket timeout */
@@ -83,7 +83,7 @@ impl TServInstance for UdpServInstance{
 
                     // send data to handler
                     let hndl = RecvHandle::new(self.port, addr, buff.to_vec());
-                    tx.send(hndl);
+                    let _ = tx.send(hndl);
                 }
                 Err(_) => {}
             }
@@ -108,7 +108,7 @@ impl TServInstance for UdpServInstance{
             for i in 0usize..data.len(){
                 buff[i] = data[i];
             }
-            self.sock.send_to(&buff, addr);
+            let _ = self.sock.send_to(&buff, addr);
             return true;
         }
 

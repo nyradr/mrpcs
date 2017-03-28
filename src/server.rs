@@ -1,7 +1,6 @@
 use std::net::SocketAddr;
 use std::time::{Duration, Instant};
 use std::sync::mpsc::{Sender};
-use std::fmt;
 
 /* Server status */
 #[derive(Clone, Debug)]
