@@ -39,10 +39,35 @@ impl TcpServInstance{
         };
         return tsi;
     }
+
+    /* Add new peer to the connected peer list
+        stream : TCP stream to add
+    */
+    fn add_peer(&self, stream: TcpStream){
+        stream.set_nonblocking(true);
+
+        {   // setting socket timeout
+            let timeout = *self.timeout.lock().unwrap();
+            stream.set_read_timeout(Some(timeout.clone()));
+            stream.set_write_timeout(Some(timeout.clone()));
+        }
+
+        // add in peers list
+        let nstream = stream.try_clone().unwrap();
+        let addr = nstream.peer_addr().unwrap();
+        let mut peers = self.peers.lock().unwrap();
+        peers.insert(addr, nstream);
+
+        // start listen thread
+        thread::spawn(move ||{
+            run_tcpstream(stream);
+        });
+    }
 }
 
+/* Listen data from a TCP client until the client close
+*/
 fn run_tcpstream(stream: TcpStream){
-
 }
 
 impl TServInstance for TcpServInstance{
@@ -90,21 +115,7 @@ impl TServInstance for TcpServInstance{
         while self.is_running(){
             for stream in self.sock.incoming(){
                 let stream = stream.unwrap();
-
-                {   // setting socket timeout
-                    let timeout = *self.timeout.lock().unwrap();
-                    stream.set_read_timeout(Some(timeout.clone()));
-                    stream.set_write_timeout(Some(timeout.clone()));
-                }
-
-                let nstream = stream.try_clone().unwrap();
-                let addr = nstream.peer_addr().unwrap();
-                let mut peers = self.peers.lock().unwrap();
-                peers.insert(addr, nstream);
-
-                thread::spawn(move ||{
-                    run_tcpstream(stream);
-                });
+                self.add_peer(stream);
             }
         }
 
