@@ -8,7 +8,7 @@ use server::{Status, RecvHandle, TServInstance};
 use udpserver::UdpServInstance;
 
 #[derive(Clone)]
-pub enum ServMode{
+enum ServMode{
     UDP(UdpServInstance)
 }
 
@@ -20,8 +20,9 @@ pub struct Rpc{
 
 impl Rpc{
 
-    /* Create new RPC server
-    */
+    /// Create new RPC server manager
+    /// # Arguments
+    /// * `tx` - MPSC sender
     pub fn new(tx: Sender<RecvHandle>) -> Rpc{
         let rpc = Rpc{
             insts: HashMap::new(),
@@ -31,11 +32,12 @@ impl Rpc{
         return rpc;
     }
 
-    /* Start asynchronous udp server
-        Block until the server is RUNNING
-        port : UDP port where the server should listen
-        return true if the server is started
-    */
+    /// Start asynchronous udp server.
+    /// This function will block until the server is `Status::RUNNING`.
+    /// Return true if the server is started.
+    /// # Arguments
+    /// * `port` - UDP port where the server should listen
+    /// * `timeout` - Read/Write timeout
     pub fn start_udp(&mut self, port: &u16, timeout: Duration) -> bool{
         if !self.insts.contains_key(port){
             let udps = UdpServInstance::new(port.clone(), timeout);
@@ -63,9 +65,9 @@ impl Rpc{
 
     }
 
-    /* Stop a server running on a port
-        port : Server port
-    */
+    /// Stop a server running on a port
+    /// # Argments
+    /// * `port` - Server port
     pub fn stop(&mut self, port: &u16){
         match self.insts.remove(port){
             Some(srv) =>{
@@ -90,11 +92,11 @@ impl Rpc{
         }
     }
 
-    /* Send data to a peer
-        port : server socket port
-        addr : target address
-        data : data to send
-    */
+    /// Send data to a peer
+    /// # Arguments
+    /// * `port` - server socket port
+    /// * `addr` - target address
+    /// * `data` - data to send
     pub fn send(&self, port: &u16, addr: SocketAddr, data: Vec<u8>) -> bool{
         match self.insts.get(port){
             Some(srv) =>{
@@ -108,12 +110,12 @@ impl Rpc{
         }
     }
 
-    /* Test if the port is used by this RPC server */
+    /// Test if the port is used by this RPC server
     pub fn is_used(&self, port: &u16)->bool{
         return self.insts.contains_key(port);
     }
 
-    /* Test if the port is used by UDP */
+    /// Test if the port is used by UDP
     pub fn is_udp(&self, port: &u16)->bool{
         match self.insts.get(port){
             Some(srv) =>{
@@ -129,10 +131,10 @@ impl Rpc{
         }
     }
 
-    /* Get the status of a server
-        port : server port
-        return Some(status) if the server exist
-    */
+    /// Get the status of a server
+    /// return Some(status) if the server exist
+    /// # Arguments
+    /// * `port` - server port
     pub fn status_of(&self, port: &u16)->Option<Status>{
         match self.insts.get(port){
             Some(srv) =>{
