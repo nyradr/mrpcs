@@ -12,6 +12,7 @@ enum ServMode{
     UDP(UdpServInstance)
 }
 
+/// RPC server manager
 #[derive(Clone)]
 pub struct Rpc{
     insts: HashMap<u16, ServMode>,
