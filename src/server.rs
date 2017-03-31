@@ -15,9 +15,17 @@ pub enum Status{
     STOPED
 }
 
+/// Signal throwed by a server
+pub enum RecvHandle{
+    /// The server receive a message
+    MESS(RecvMess),
+    /// Some client has timeout
+    TIMEOUT(SocketAddr)
+}
+
 
 /// Data throwed when a message is received
-pub struct RecvHandle{
+pub struct RecvMess{
     /* Server port */
     port: u16,
     /* Client address */
@@ -28,15 +36,15 @@ pub struct RecvHandle{
     data: Vec<u8>
 }
 
-impl RecvHandle{
+impl RecvMess{
     /// Create a new RecvHandle and initialize it
     /// Set time to now
     /// # Arguments
     /// * `port` : server port
     /// * `addr` : client address
     /// * `data` : data received
-    pub fn new(port: u16, addr: SocketAddr, data: Vec<u8>) -> RecvHandle{
-        let rh = RecvHandle {
+    pub fn new(port: u16, addr: SocketAddr, data: Vec<u8>) -> RecvMess{
+        let rh = RecvMess {
             port: port,
             addr: addr,
             time: Instant::now(),
@@ -80,7 +88,7 @@ pub trait TServInstance{
     fn set_timeout(&self, d: Duration);
 
     /// Get the socket timeout
-    fn get_timeout(&self) -> Option<Duration>;
+    fn get_timeout(&self) -> Duration;
 
     /// Run a server instance
     /// # Arguments

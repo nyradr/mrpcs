@@ -1,9 +1,10 @@
 use std::sync::{Arc, Mutex};
 use std::net::{UdpSocket, SocketAddr};
-use std::time::Duration;
+use std::time::{Instant, Duration};
 use std::sync::mpsc::Sender;
+use std::collections::HashMap;
 
-use server::{Status, RecvHandle, TServInstance};
+use server::{Status, RecvHandle, RecvMess, TServInstance};
 use ::BUFFER_SIZE;
 
 /* Instance of a UDP server
@@ -16,6 +17,10 @@ pub struct UdpServInstance{
     status: Arc<Mutex<Status>>,
     /* UDP socket */
     sock: Arc<UdpSocket>,
+    /* timeout value */
+    timeout: Arc<Mutex<Duration>>,
+    /* Client RTT timeouts */
+    timeouts: Arc<Mutex<HashMap<SocketAddr, Instant>>>
 }
 
 impl UdpServInstance{
@@ -26,7 +31,9 @@ impl UdpServInstance{
         let usi = UdpServInstance{
             port: port,
             status: Arc::new(Mutex::new(Status::STARTING)),
-            sock: Arc::new(sock)
+            sock: Arc::new(sock),
+            timeout: Arc::new(Mutex::new(timeout)),
+            timeouts: Arc::new(Mutex::new(HashMap::new()))
         };
         usi.set_timeout(timeout);
         return usi;
@@ -58,11 +65,15 @@ impl TServInstance for UdpServInstance{
     fn set_timeout(&self, d: Duration){
         let _ = self.sock.set_read_timeout(Some(d));
         let _ = self.sock.set_write_timeout(Some(d));
+
+        let mut tm = self.timeout.lock().unwrap();
+        *tm = d;
     }
 
     /* Get the socket timeout */
-    fn get_timeout(&self) -> Option<Duration>{
-        return self.sock.read_timeout().unwrap();
+    fn get_timeout(&self) -> Duration{
+        let tm = self.timeout.lock().unwrap();
+        return *tm;
     }
 
     /* Run a server instance
@@ -82,7 +93,7 @@ impl TServInstance for UdpServInstance{
                     let buff = &mut buff[..len];
 
                     // send data to handler
-                    let hndl = RecvHandle::new(self.port, addr, buff.to_vec());
+                    let hndl = RecvHandle::MESS(RecvMess::new(self.port, addr, buff.to_vec()));
                     let _ = tx.send(hndl);
                 }
                 Err(_) => {}
