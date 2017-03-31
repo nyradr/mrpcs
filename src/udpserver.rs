@@ -98,6 +98,20 @@ impl TServInstance for UdpServInstance{
                 }
                 Err(_) => {}
             }
+
+            // Clear timed out requests
+            let mut tm = self.timeouts.lock().unwrap();
+            let mut ntm: HashMap<SocketAddr, Instant> = HashMap::new();
+            for (a, t) in tm.iter(){
+                let timeout = self.timeout.lock().unwrap();
+                if t.elapsed() >= *timeout{
+                    let  hndl = RecvHandle::TIMEOUT(a.clone());
+                    let _ = tx.send(hndl);
+                }else{
+                    ntm.insert(a.clone(), t.clone());
+                }
+            };
+            *tm = ntm;
         }
 
         {
@@ -115,11 +129,16 @@ impl TServInstance for UdpServInstance{
     /* Try to send data through the socket of this server */
     fn send(&self, addr: SocketAddr, data:Vec<u8>) -> bool{
         if data.len() < BUFFER_SIZE{
+            // send buffer
             let mut buff = [0u8; BUFFER_SIZE];
             for i in 0usize..data.len(){
                 buff[i] = data[i];
             }
             let _ = self.sock.send_to(&buff, addr);
+
+            // put request timeout
+            let mut tm = self.timeouts.lock().unwrap();
+            tm.insert(addr, Instant::now());
             return true;
         }
 

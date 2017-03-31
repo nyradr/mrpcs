@@ -14,11 +14,17 @@ use std::io::{self, Read};
 
 fn req_handler(rx: Receiver<RecvHandle>){
     for rh in rx.iter(){
-        println!("Packet received");
-        println!("Port : {:?}", rh.get_port());
-        println!("From : {:?}", rh.get_addr());
-        println!("Time : {:?}", rh.get_time());
-        println!("Data : {:?}", rh.get_data());
+        match rh{
+            MESS(rm) => {
+                println!("Packet received");
+                println!("Port : {:?}", rm.get_port());
+                println!("From : {:?}", rm.get_addr());
+                println!("Time : {:?}", rm.get_time());
+                println!("Data : {:?}", rm.get_data());
+            }
+            TIMEOUT(addr) =>{
+                println!("Client timeout {:?}", addr);
+            }
     }
 }
 
