@@ -7,8 +7,7 @@ use std::collections::HashMap;
 use server::{Status, RecvHandle, RecvMess, TServInstance};
 use ::BUFFER_SIZE;
 
-/* Instance of a UDP server
-*/
+/// Instance of a UDP server
 #[derive(Clone)]
 pub struct UdpServInstance{
     /* Port used by instance */
@@ -25,7 +24,9 @@ pub struct UdpServInstance{
 
 impl UdpServInstance{
 
-    /* Create a new UdpServInstance */
+    /// Create a new UdpServInstance
+    /// * 'port` : Server port
+    /// * `timeout` : Listed and request timeout
     pub fn new(port: u16, timeout: Duration)->UdpServInstance{
         let sock = UdpSocket::bind(("localhost", port)).unwrap();
         let usi = UdpServInstance{
@@ -95,6 +96,10 @@ impl TServInstance for UdpServInstance{
                     // send data to handler
                     let hndl = RecvHandle::MESS(RecvMess::new(self.port, addr, buff.to_vec()));
                     let _ = tx.send(hndl);
+
+                    // remove client from timeout
+                    let mut tm = self.timeouts.lock().unwrap();
+                    tm.remove(&addr);
                 }
                 Err(_) => {}
             }
