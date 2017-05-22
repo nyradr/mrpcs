@@ -12,25 +12,25 @@ enum ServMode{
     UDP(UdpServInstance)
 }
 
-/// RPC server manager
+/// A pool of servers
 #[derive(Clone)]
-pub struct Rpc{
+pub struct ServerPool{
     insts: HashMap<u16, ServMode>,
     recvh: Sender<RecvHandle>
 }
 
-impl Rpc{
+impl ServerPool{
 
-    /// Create new RPC server manager
+    /// Create new server pool
     /// # Arguments
     /// * `tx` - MPSC sender
-    pub fn new(tx: Sender<RecvHandle>) -> Rpc{
-        let rpc = Rpc{
+    pub fn new(tx: Sender<RecvHandle>) -> ServerPool{
+        let srv = ServerPool{
             insts: HashMap::new(),
             recvh: tx
         };
 
-        return rpc;
+        return srv;
     }
 
     /// Start asynchronous udp server.

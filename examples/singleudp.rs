@@ -3,7 +3,7 @@
 */
 
 extern crate mrpcs;
-use mrpcs::rpc::Rpc;
+use mrpcs::srvp::ServerPool;
 use mrpcs::server::{Status, RecvHandle};
 
 use std::thread;
@@ -36,10 +36,10 @@ fn main() {
     let (tx, rx) = mpsc::channel();
 
     // rpc server manager
-    let mut rpc = Rpc::new(tx);
+    let mut pool = ServerPool::new(tx);
 
     // start an asynchronous UDP listener of port 4242, with timeout of 2s
-    rpc.start_udp(PORT, Duration::new(2, 0));
+    pool.start_udp(PORT, Duration::new(2, 0));
 
     // start data handler
     let t = thread::spawn(move ||{
@@ -54,5 +54,5 @@ fn main() {
     }
 
     // stop the server
-    rpc.stop(PORT);
+    pool.stop(PORT);
 }
