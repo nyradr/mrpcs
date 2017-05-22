@@ -25,12 +25,10 @@ impl ServerPool{
     /// # Arguments
     /// * `tx` - MPSC sender
     pub fn new(tx: Sender<RecvHandle>) -> ServerPool{
-        let srv = ServerPool{
+        ServerPool{
             insts: HashMap::new(),
             recvh: tx
-        };
-
-        return srv;
+        }
     }
 
     /// Start asynchronous udp server.
@@ -53,7 +51,7 @@ impl ServerPool{
             let mut wait = true;
             while wait{
                 match udps.get_status(){
-                    Status::RUNNING => {wait = false;}
+                    Status::Running => {wait = false;}
                     _ => {}
                 }
             }
@@ -80,7 +78,7 @@ impl ServerPool{
                         let mut wait = true;
                         while wait{
                             match udps.get_status(){
-                                Status::STOPED => {wait = false;}
+                                Status::Stoped => {wait = false;}
                                 _ => {}
                             }
                         }
@@ -102,18 +100,16 @@ impl ServerPool{
         match self.insts.get(port){
             Some(srv) =>{
                 match srv{
-                    &ServMode::UDP(ref udps) =>{
-                        return udps.send(addr, data);
-                    }
+                    &ServMode::UDP(ref udps) => udps.send(addr, data)
                 }
             }
-            None => {false}
+            None => false
         }
     }
 
     /// Test if the port is used by this RPC server
     pub fn is_used(&self, port: &u16)->bool{
-        return self.insts.contains_key(port);
+        self.insts.contains_key(port)
     }
 
     /// Test if the port is used by UDP

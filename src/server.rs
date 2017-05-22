@@ -6,13 +6,13 @@ use std::sync::mpsc::{Sender};
 #[derive(Clone, Debug)]
 pub enum Status{
     /// The server is starting but not yet running
-    STARTING,
+    Starting,
     /// The server is running
-    RUNNING,
+    Running,
     /// The server is stopping but not yes stopped
-    STOPING,
+    Stoping,
     /// The server is stopped
-    STOPED
+    Stoped
 }
 
 /// Signal throwed by a server

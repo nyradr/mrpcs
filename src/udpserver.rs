@@ -31,13 +31,13 @@ impl UdpServInstance{
         let sock = UdpSocket::bind(("localhost", port)).unwrap();
         let usi = UdpServInstance{
             port: port,
-            status: Arc::new(Mutex::new(Status::STARTING)),
+            status: Arc::new(Mutex::new(Status::Starting)),
             sock: Arc::new(sock),
             timeout: Arc::new(Mutex::new(timeout)),
             timeouts: Arc::new(Mutex::new(HashMap::new()))
         };
         usi.set_timeout(timeout);
-        return usi;
+        usi
     }
 }
 
@@ -47,17 +47,14 @@ impl TServInstance for UdpServInstance{
         let ref st = *self.status.lock().unwrap();
 
         match st{
-            &Status::RUNNING => {return true;}
-            _ => {
-                return false;
-            }
+            &Status::Running => true,
+            _ => false
         }
     }
 
     /* Get the current server status */
     fn get_status(&self)->Status{
-        let st = self.status.lock().unwrap();
-        return st.clone();
+        self.status.lock().unwrap().clone()
     }
 
     /* Set the socket timeout
@@ -73,8 +70,7 @@ impl TServInstance for UdpServInstance{
 
     /* Get the socket timeout */
     fn get_timeout(&self) -> Duration{
-        let tm = self.timeout.lock().unwrap();
-        return *tm;
+        *self.timeout.lock().unwrap()
     }
 
     /* Run a server instance
@@ -83,7 +79,7 @@ impl TServInstance for UdpServInstance{
     fn run(&mut self, tx: Sender<RecvHandle>){
         {
             let mut st = self.status.lock().unwrap();
-            *st = Status::RUNNING;
+            *st = Status::Running;
         }
 
         while self.is_running(){
@@ -121,14 +117,14 @@ impl TServInstance for UdpServInstance{
 
         {
             let mut st = self.status.lock().unwrap();
-            *st = Status::STOPED;
+            *st = Status::Stoped;
         }
     }
 
     /* Stop the running server */
     fn stop(&mut self){
         let mut st = self.status.lock().unwrap();
-        *st = Status::STOPING;
+        *st = Status::Stoping;
     }
 
     /* Try to send data through the socket of this server */
@@ -144,9 +140,9 @@ impl TServInstance for UdpServInstance{
             // put request timeout
             let mut tm = self.timeouts.lock().unwrap();
             tm.insert(addr, Instant::now());
-            return true;
+            true
+        }else{
+            false
         }
-
-        return false;
     }
 }
