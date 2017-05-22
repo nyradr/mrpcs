@@ -3,6 +3,7 @@ use std::net::SocketAddr;
 use std::sync::mpsc::Sender;
 use std::collections::HashMap;
 use std::time::Duration;
+use std::io::{ErrorKind, Error};
 
 use server::{Status, RecvHandle, TServInstance};
 use udpserver::UdpServInstance;
@@ -96,14 +97,14 @@ impl ServerPool{
     /// * `port` - server socket port
     /// * `addr` - target address
     /// * `data` - data to send
-    pub fn send(&self, port: &u16, addr: SocketAddr, data: Vec<u8>) -> bool{
+    pub fn send(&self, port: &u16, addr: SocketAddr, data: Vec<u8>) -> Result<usize, Error>{
         match self.insts.get(port){
             Some(srv) =>{
                 match srv{
                     &ServMode::UDP(ref udps) => udps.send(addr, data)
                 }
             }
-            None => false
+            None => Err(Error::new(ErrorKind::NotFound, "unused port by the pool"))
         }
     }
 

@@ -1,6 +1,7 @@
 use std::net::SocketAddr;
 use std::time::{Duration, Instant};
-use std::sync::mpsc::{Sender};
+use std::sync::mpsc::Sender;
+use std::io::Error;
 
 /// Server status
 #[derive(Clone, Debug)]
@@ -103,5 +104,5 @@ pub trait TServInstance{
     /// # Arguments
     /// * `addr` : target address
     /// * `data` : data to send (must be shorter than the buffer length)
-    fn send(&self, addr: SocketAddr, data:Vec<u8>) -> bool;
+    fn send(&self, addr: SocketAddr, data:Vec<u8>) -> Result<usize, Error>;
 }
