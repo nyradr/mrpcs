@@ -94,7 +94,7 @@ impl TServInstance for UdpServInstance{
                     let buff = &mut buff[..len];
 
                     // send data to handler
-                    let hndl = RecvHandle::MESS(RecvMess::new(self.port, addr, buff.to_vec()));
+                    let hndl = RecvHandle::Mess(RecvMess::new(self.port, addr, buff.to_vec()));
                     let _ = tx.send(hndl);
 
                     // remove client from timeout
@@ -110,7 +110,7 @@ impl TServInstance for UdpServInstance{
             for (a, t) in tm.iter(){
                 let timeout = self.timeout.lock().unwrap();
                 if t.elapsed() >= *timeout{
-                    let  hndl = RecvHandle::TIMEOUT(a.clone());
+                    let  hndl = RecvHandle::Timeout(a.clone());
                     let _ = tx.send(hndl);
                 }else{
                     ntm.insert(a.clone(), t.clone());

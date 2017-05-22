@@ -39,9 +39,9 @@ impl Rpc{
     /// # Arguments
     /// * `port` - UDP port where the server should listen
     /// * `timeout` - Read/Write timeout
-    pub fn start_udp(&mut self, port: &u16, timeout: Duration) -> bool{
-        if !self.insts.contains_key(port){
-            let udps = UdpServInstance::new(port.clone(), timeout);
+    pub fn start_udp(&mut self, port: u16, timeout: Duration) -> bool{
+        if !self.insts.contains_key(&port){
+            let udps = UdpServInstance::new(port, timeout);
             let mut nudps = udps.clone();
             let tx = self.recvh.clone();
 
@@ -69,8 +69,8 @@ impl Rpc{
     /// Stop a server running on a port
     /// # Argments
     /// * `port` - Server port
-    pub fn stop(&mut self, port: &u16){
-        match self.insts.remove(port){
+    pub fn stop(&mut self, port: u16){
+        match self.insts.remove(&port){
             Some(srv) =>{
                 match srv {
                     ServMode::UDP(mut udps) =>{
@@ -85,7 +85,7 @@ impl Rpc{
                             }
                         }
 
-                        self.insts.remove(port);
+                        self.insts.remove(&port);
                     }
                 }
             }

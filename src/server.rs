@@ -18,9 +18,9 @@ pub enum Status{
 /// Signal throwed by a server
 pub enum RecvHandle{
     /// The server receive a message
-    MESS(RecvMess),
+    Mess(RecvMess),
     /// Some client has timeout
-    TIMEOUT(SocketAddr)
+    Timeout(SocketAddr)
 }
 
 
