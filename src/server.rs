@@ -106,3 +106,14 @@ pub trait TServInstance{
     /// * `data` : data to send (must be shorter than the buffer length)
     fn send(&self, addr: SocketAddr, data:Vec<u8>) -> Result<usize, Error>;
 }
+
+/// Initialize a buffer of size len
+pub fn init_buffer(len: usize)->Vec<u8>{
+    let mut buff = Vec::with_capacity(len);
+
+    for _ in 0..len{ // create all elements
+        buff.push(0)
+    }
+
+    buff
+}

@@ -39,9 +39,10 @@ impl ServerPool{
     /// * `port` - UDP port where the server should listen
     /// * `timeout` - Read/Write timeout
     /// * `v4` - Listen for ipv4 address instead of ipv6
-    pub fn start_udp(&mut self, port: u16, timeout: Duration, v4: bool) -> bool{
+    /// * `blen` - Buffer max length
+    pub fn start_udp(&mut self, port: u16, timeout: Duration, v4: bool, blen: usize) -> bool{
         if !self.insts.contains_key(&port){
-            let udps = UdpServInstance::new(port, timeout, v4);
+            let udps = UdpServInstance::new(port, timeout, v4, blen);
             let mut nudps = udps.clone();
             let tx = self.recvh.clone();
 
