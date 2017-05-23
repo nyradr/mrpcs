@@ -93,6 +93,18 @@ impl ServerPool{
         }
     }
 
+    /// Stop all running server on the pool
+    pub fn stop_all(&mut self){
+        let mut ports = vec!();
+        for port in self.insts.keys(){
+            ports.push(*port);
+        }
+
+        for port in ports{
+            self.stop(port);
+        }
+    }
+
     /// Send data to a peer
     /// # Arguments
     /// * `port` - server socket port

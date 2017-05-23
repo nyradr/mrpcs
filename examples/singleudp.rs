@@ -56,6 +56,5 @@ fn main() {
     }
 
     // stop the server
-    pool.stop(PORT4);
-    pool.stop(PORT6);
+    pool.stop_all();
 }
