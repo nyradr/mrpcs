@@ -1,11 +1,12 @@
 use std::thread;
 use std::net::SocketAddr;
-use std::sync::mpsc::Sender;
+use std::sync::mpsc;
+use std::sync::mpsc::{Receiver, Sender};
 use std::collections::HashMap;
 use std::time::Duration;
 use std::io::{ErrorKind, Error};
 
-use server::{Status, RecvHandle, TServInstance};
+use server::{Status, RecvHandle, RecvMess, TServInstance};
 use udpserver::UdpServInstance;
 
 #[derive(Clone)]
@@ -30,6 +31,21 @@ impl ServerPool{
             insts: HashMap::new(),
             recvh: tx
         }
+    }
+
+    /// Create new server pool and get received data through callbacks
+    /// # Arguments
+    /// * `recv` - Data received callback
+    /// * `timeout` - Client timeout callback
+    pub fn new_callbacks(recv: fn(RecvMess), timeout: fn(SocketAddr)) -> ServerPool{
+        // data handler
+        let (tx, rx) = mpsc::channel();
+
+        let t = thread::spawn(move ||{
+            req_handler(rx, recv, timeout);
+        });
+
+        Self::new(tx)
     }
 
     /// Start asynchronous udp server.
@@ -64,7 +80,6 @@ impl ServerPool{
         }else{
             false
         }
-
     }
 
     /// Stop a server running on a port
@@ -159,6 +174,17 @@ impl ServerPool{
             None =>{
                 None
             }
+        }
+    }
+}
+
+/// Mpsc receiver for the callback mode
+fn req_handler(rx: Receiver<RecvHandle>, recv: fn(RecvMess), timeout: fn(SocketAddr)){
+    for rh in rx.iter(){
+        println!("HERE" );
+        match rh{
+            RecvHandle::Mess(rm) => recv(rm),
+            RecvHandle::Timeout(addr) =>timeout(addr)
         }
     }
 }
