@@ -1,5 +1,5 @@
 use std::sync::{Arc, Mutex};
-use std::net::{UdpSocket, SocketAddr};
+use std::net::{UdpSocket, SocketAddr, IpAddr, Ipv4Addr, Ipv6Addr};
 use std::time::{Instant, Duration};
 use std::sync::mpsc::Sender;
 use std::collections::HashMap;
@@ -28,8 +28,18 @@ impl UdpServInstance{
     /// Create a new UdpServInstance
     /// * 'port` : Server port
     /// * `timeout` : Listed and request timeout
-    pub fn new(port: u16, timeout: Duration)->UdpServInstance{
-        let sock = UdpSocket::bind(("localhost", port)).unwrap();
+    /// * `v4` : Listen for ipv4 address instead of ipv6
+    pub fn new(port: u16, timeout: Duration, v4: bool)->UdpServInstance{
+        let addr: IpAddr;
+        if v4{
+            addr = IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0));
+        }else{
+            addr = IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 0));
+        }
+
+
+
+        let sock = UdpSocket::bind((addr, port)).unwrap();
         let usi = UdpServInstance{
             port: port,
             status: Arc::new(Mutex::new(Status::Starting)),

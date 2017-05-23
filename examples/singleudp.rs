@@ -29,7 +29,8 @@ fn req_handler(rx: Receiver<RecvHandle>){
     }
 }
 
-const PORT: u16 = 4242;
+const PORT4: u16 = 4242;
+const PORT6: u16 = 4243;
 
 fn main() {
     // data handler
@@ -39,7 +40,8 @@ fn main() {
     let mut pool = ServerPool::new(tx);
 
     // start an asynchronous UDP listener of port 4242, with timeout of 2s
-    pool.start_udp(PORT, Duration::new(2, 0));
+    pool.start_udp(PORT4, Duration::new(2, 0), true);
+    pool.start_udp(PORT6, Duration::new(2, 0), false);
 
     // start data handler
     let t = thread::spawn(move ||{
@@ -54,5 +56,6 @@ fn main() {
     }
 
     // stop the server
-    pool.stop(PORT);
+    pool.stop(PORT4);
+    pool.stop(PORT6);
 }
